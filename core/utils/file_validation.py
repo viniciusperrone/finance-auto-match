@@ -14,7 +14,7 @@ def validate_file_extension(file) -> None:
 
 
 def validate_file_size(file) -> None:
-    max_size = settings.UPLOAD_MAX_FILE_SIZE
+    max_size = settings.UPLOAD_MAX_SIZE_BYTES
 
     if file.size > max_size:
         max_mb = max_size / (1024 * 1024)

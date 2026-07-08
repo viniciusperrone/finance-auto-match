@@ -1,107 +1,113 @@
 {% extends "base.html" %}
 
-{% block title %}Arquivos enviados - Finance Auto Match{% endblock %}
+{% block title %}Arquivos enviados{% endblock %}
 
 {% block content %}
 
 <div class="d-flex justify-content-between align-items-center mb-4">
     <div>
-        <h2 class="mb-0">Arquivos enviados</h2>
-        <small class="text-muted">
-            Gerencie os uploads realizados.
-        </small>
+        <h2 class="mb-1">Arquivos enviados</h2>
+        <p class="text-muted mb-0">
+            Histórico de uploads realizados.
+        </p>
     </div>
 
-    <a href="{% url 'upload_create' %}" class="btn btn-primary">
-        + Novo upload
+    <a href="{% url 'uploads:create' %}" class="btn btn-primary">
+        Novo upload
     </a>
 </div>
 
 {% if arquivos %}
 
 <div class="card shadow-sm">
-    <div class="card-body p-0">
+    <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
 
-        <div class="table-responsive">
-            <table class="table table-hover align-middle mb-0">
+            <thead class="table-light">
+                <tr>
+                    <th>Arquivo</th>
+                    <th>Tipo</th>
+                    <th>Tamanho</th>
+                    <th>Status</th>
+                    <th>Enviado em</th>
+                    <th class="text-end">Ações</th>
+                </tr>
+            </thead>
 
-                <thead class="table-light">
-                    <tr>
-                        <th>Arquivo</th>
-                        <th>Tipo</th>
-                        <th>Tamanho</th>
-                        <th>Status</th>
-                        <th>Enviado em</th>
-                        <th class="text-end">Ações</th>
-                    </tr>
-                </thead>
+            <tbody>
 
-                <tbody>
-                    {% for arquivo in arquivos %}
-                    <tr>
+            {% for arquivo in arquivos %}
 
-                        <td>
-                            <strong>{{ arquivo.original_filename }}</strong>
-                        </td>
+                <tr>
 
-                        <td>
-                            {{ arquivo.get_file_type_display }}
-                        </td>
+                    <td>
+                        <strong>{{ arquivo.original_filename }}</strong>
+                    </td>
 
-                        <td>
-                            {{ arquivo.size_bytes|filesizeformat }}
-                        </td>
+                    <td>
+                        {{ arquivo.get_file_type_display }}
+                    </td>
 
-                        <td>
-                            {% if arquivo.status == "PENDING" %}
-                                <span class="badge bg-warning text-dark">
-                                    {{ arquivo.get_status_display }}
-                                </span>
+                    <td>
+                        {{ arquivo.size_bytes|filesizeformat }}
+                    </td>
 
-                            {% elif arquivo.status == "PROCESSING" %}
-                                <span class="badge bg-info">
-                                    {{ arquivo.get_status_display }}
-                                </span>
+                    <td>
 
-                            {% elif arquivo.status == "COMPLETED" %}
-                                <span class="badge bg-success">
-                                    {{ arquivo.get_status_display }}
-                                </span>
+                        {% if arquivo.status == "PENDING" %}
+                            <span class="badge bg-warning text-dark">
+                                {{ arquivo.get_status_display }}
+                            </span>
 
-                            {% elif arquivo.status == "FAILED" %}
-                                <span class="badge bg-danger">
-                                    {{ arquivo.get_status_display }}
-                                </span>
+                        {% elif arquivo.status == "PROCESSING" %}
+                            <span class="badge bg-info">
+                                {{ arquivo.get_status_display }}
+                            </span>
 
-                            {% else %}
-                                <span class="badge bg-secondary">
-                                    {{ arquivo.get_status_display }}
-                                </span>
-                            {% endif %}
-                        </td>
+                        {% elif arquivo.status == "COMPLETED" %}
+                            <span class="badge bg-success">
+                                {{ arquivo.get_status_display }}
+                            </span>
 
-                        <td>
-                            {{ arquivo.uploaded_at|date:"d/m/Y H:i" }}
-                        </td>
+                        {% elif arquivo.status == "FAILED" %}
+                            <span class="badge bg-danger">
+                                {{ arquivo.get_status_display }}
+                            </span>
 
-                        <td class="text-end">
-                            <a href="#" class="btn btn-sm btn-outline-danger">
-                                Excluir
-                            </a>
-                        </td>
+                        {% else %}
+                            <span class="badge bg-secondary">
+                                {{ arquivo.get_status_display }}
+                            </span>
+                        {% endif %}
 
-                    </tr>
-                    {% endfor %}
-                </tbody>
+                    </td>
 
-            </table>
-        </div>
+                    <td>
+                        {{ arquivo.uploaded_at|date:"d/m/Y H:i" }}
+                    </td>
 
+                    <td class="text-end">
+
+                        <a
+                            href="{% url 'uploads:delete' arquivo.pk %}"
+                            class="btn btn-outline-danger btn-sm"
+                        >
+                            Excluir
+                        </a>
+
+                    </td>
+
+                </tr>
+
+            {% endfor %}
+
+            </tbody>
+
+        </table>
     </div>
 </div>
 
 {% if is_paginated %}
-
 <nav class="mt-4">
     <ul class="pagination justify-content-center">
 
@@ -113,9 +119,9 @@
         </li>
         {% endif %}
 
-        <li class="page-item disabled">
+        <li class="page-item active">
             <span class="page-link">
-                Página {{ page_obj.number }} de {{ page_obj.paginator.num_pages }}
+                {{ page_obj.number }}
             </span>
         </li>
 
@@ -129,22 +135,23 @@
 
     </ul>
 </nav>
-
 {% endif %}
 
 {% else %}
 
 <div class="card">
     <div class="card-body text-center py-5">
+
         <h4>Nenhum arquivo enviado</h4>
 
         <p class="text-muted">
-            Clique em <strong>"Novo upload"</strong> para começar.
+            Ainda não existe nenhum upload cadastrado.
         </p>
 
-        <a href="{% url 'upload_create' %}" class="btn btn-primary">
-            Novo upload
+        <a href="{% url 'uploads:create' %}" class="btn btn-primary">
+            Fazer primeiro upload
         </a>
+
     </div>
 </div>
 
