@@ -1,0 +1,10 @@
+{% extends "base.html" %} {% block title %}Novo upload - Finance Auto Match{% endblock %} {% block content %}
+Novo upload
+{% csrf_token %} {% for field in form %}
+{{ field.label }} {{ field }} {% if field.help_text %}
+{{ field.help_text }}
+{% endif %} {% for error in field.errors %}
+{{ error }}
+{% endfor %}
+{% endfor %} Enviar Cancelar
+{% endblock %}

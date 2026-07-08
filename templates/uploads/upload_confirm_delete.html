@@ -1,0 +1,5 @@
+{% extends "base.html" %} {% block title %}Excluir arquivo - Finance Auto Match{% endblock %} {% block content %}
+Excluir arquivo
+Tem certeza que deseja excluir {{ object.original_filename }}? Esta alteração nÃo pode ser desfeita.
+{% csrf_token %} Sim, excluir Cancelar
+{% endblock %}

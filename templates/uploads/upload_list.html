@@ -1,0 +1,27 @@
+{% extends "base.html" %} {% block title %}Arquivos enviados - Finance Auto Match{% endblock %} {% block content %}
+Arquivos enviados
++ Novo upload
+{% if arquivos %} {% for arquivo in arquivos %} {% endfor %}
+Arquivo
+Tipo
+Tamanho
+Status
+Enviado em
+
+{{ arquivo.original_filename }}
+{{ arquivo.get_file_type_display }}
+{{ arquivo.size_bytes|filesizeformat }}
+{{ arquivo.get_status_display }}
+{{ arquivo.uploaded_at|date:"d/m/Y H:i" }}
+Excluir
+{% if is_paginated %}
+	•	{% if page_obj.has_previous %}
+	•	Anterior
+	•	{% endif %}
+	•	Página {{ page_obj.number }} de {{ page_obj.paginator.num_pages }}
+	•	{% if page_obj.has_next %}
+	•	Próxima
+	•	{% endif %}
+{% endif %} {% else %}
+Nenhum arquivo enviado ainda. Clique em "Novo upload" para começar.
+{% endif %} {% endblock %}
