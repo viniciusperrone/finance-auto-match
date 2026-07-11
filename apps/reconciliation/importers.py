@@ -34,7 +34,7 @@ class BaseImporter:
 
         try:
             if name.endswith(".csv"):
-                df = pd.read_csv(file_field, dtype=str, keep_default_na=False, enconding="utf-8-sig")
+                df = pd.read_csv(file_field, dtype=str, keep_default_na=False, encoding="utf-8-sig")
             elif name.endswith((".xlsx", ".xls")):
                 df = pd.read_excel(file_field, dtype=str)
                 df = df.fillna("")

@@ -5,7 +5,7 @@ from .models import BankTransaction, ImportIssue, Receivable
 
 @admin.register(BankTransaction)
 class BankTransactionAdmin(admin.ModelAdmin):
-    list_display = ('transcation_date', 'description', 'amount', "uploaded_file", "row_number")
+    list_display = ('transaction_date', 'description', 'amount', "uploaded_file", "row_number")
     list_filter = ('uploaded_file',)
     search_fields = ("description", "description_normalized")
     date_hierarchy = "transaction_date"
