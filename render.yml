@@ -1,0 +1,6 @@
+services:
+  - type: web
+    name: finance-auto-match
+    runtime: python
+    buildCommand: "./build.sh"
+    startCommand: "gunicorn core.wsgi:application"
