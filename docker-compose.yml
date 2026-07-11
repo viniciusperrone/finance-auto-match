@@ -1,0 +1,21 @@
+services:
+  web:
+    build: .
+    container_name: finance_auto_match_web
+    command: >
+      sh -c "python manage.py migrate &&
+             python manage.py runserver 0.0.0.0:8000"
+    volumes:
+      - .:/app
+      - media_data:/app/media
+      - exports_data:/app/exports
+    ports:
+      - "8000:8000"
+    env_file:
+      - .env
+    environment:
+      - DJANGO_SETTINGS_MODULE=core.settings.dev
+
+volumes:
+  media_data:
+  exports_data:
