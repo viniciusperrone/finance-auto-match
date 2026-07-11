@@ -1,4 +1,4 @@
-from decouple import config
+from decouple import config, Csv
 
 from .base import *
 
