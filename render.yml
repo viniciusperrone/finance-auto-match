@@ -2,7 +2,7 @@ services:
   - type: web
     name: finance-auto-match
     runtime: python
-    buildCommand: "./build.sh"
+    buildCommand: ".build/prod.sh"
     startCommand: "gunicorn core.wsgi:application"
 
     envVars:
