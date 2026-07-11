@@ -29,6 +29,7 @@
                     <th>Tipo</th>
                     <th>Tamanho</th>
                     <th>Status</th>
+                    <th>Observações</th>
                     <th>Enviado em</th>
                     <th class="text-end">Ações</th>
                 </tr>
@@ -53,38 +54,16 @@
                     </td>
 
                     <td>
-
-                        {% if arquivo.status == "PENDING" %}
-                            <span class="badge bg-warning text-dark">
-                                {{ arquivo.get_status_display }}
-                            </span>
-
-                        {% elif arquivo.status == "PROCESSING" %}
-                            <span class="badge bg-info">
-                                {{ arquivo.get_status_display }}
-                            </span>
-
-                        {% elif arquivo.status == "COMPLETED" %}
-                            <span class="badge bg-success">
-                                {{ arquivo.get_status_display }}
-                            </span>
-
-                        {% elif arquivo.status == "FAILED" %}
-                            <span class="badge bg-danger">
-                                {{ arquivo.get_status_display }}
-                            </span>
-
-                        {% else %}
-                            <span class="badge bg-secondary">
-                                {{ arquivo.get_status_display }}
-                            </span>
-                        {% endif %}
-
+                        <span class="badge bg-{% if arquivo.status == 'processado' %}success{% elif arquivo.status == 'erro' %}danger{% else %}secondary{% endif %}">
+                            {{ arquivo.get_status_display }}
+                        </span>
                     </td>
 
                     <td>
                         {{ arquivo.uploaded_at|date:"d/m/Y H:i" }}
                     </td>
+
+                    <td class="small text-muted">{{ arquivo.processing_notes|default:"—" }}</td>
 
                     <td class="text-end">
 
