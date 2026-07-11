@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard{% endblock %}
+
+{% block content %}
+    <h1 class="h3 mb-3">Finance Auto Match</h1>
+
+    <p class="text-muted">
+        Conciliação financeira entre extrato bancário e contas a receber.
+    </p>
+
+    <div class="card" style="max-width: 320px;">
+        <div class="card-body">
+            <h5 class="card-title">Arquivos enviados</h5>
+            <p class="card-text display-6">{{ total_arquivos }}</p>
+            <a href="{% url 'uploads:list' %}" class="btn btn-sm btn-primary">Ver arquivos</a>
+        </div>
+    </div>
+{% endblock %}
