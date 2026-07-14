@@ -12,6 +12,7 @@ https://docs.djangoproject.com/en/6.0/ref/settings/
 
 from pathlib import Path
 from decouple import config, Csv
+from decimal import Decimal
 
 import dj_database_url
 
@@ -124,3 +125,11 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 UPLOAD_ALLOWED_EXTENSIONS = [".csv", ".xlsx", ".xls"]
 
 UPLOAD_MAX_SIZE_BYTES = config("UPLOAD_MAX_SIZE_BYTES", default=10 * 1024 * 1024, cast=int)
+
+RECONCILIATION_DATE_WINDOW_BEFORE_DAYS = config("RECONCILIATION_DATE_WINDOW_BEFORE_DAYS", default=5, cast=int)
+RECONCILIATION_DATE_WINDOW_AFTER_DAYS = config("RECONCILIATION_DATE_WINDOW_AFTER_DAYS", default=10, cast=int)
+RECONCILIATION_AMOUNT_TOLERANCE_RATIO = Decimal(config("RECONCILIATION_AMOUNT_TOLERANCE_RATIO", default="0.05"))
+RECONCILIATION_WEIGHT_AMOUNT = config("RECONCILIATION_WEIGHT_AMOUNT", default=0.5, cast=float)
+RECONCILIATION_WEIGHT_DATE = config("RECONCILIATION_WEIGHT_DATE", default=0.25, cast=float)
+RECONCILIATION_WEIGHT_DESCRIPTION = config("RECONCILIATION_WEIGHT_DESCRIPTION", default=0.25, cast=float)
+RECONCILIATION_CONCILIADO_MIN_SCORE = config("RECONCILIATION_CONCILIADO_MIN_SCORE", default=60, cast=int)
