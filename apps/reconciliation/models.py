@@ -75,3 +75,52 @@ class ImportIssue(models.Model):
 
     def __str__(self) -> str:
         return f"Linha {self.row_number}: {self.error_message}"
+
+class ReconciliationResult(models.Model):
+
+    class Status(models.TextChoices):
+        CONCILIADO = "conciliado", "Conciliado"
+        DIVERGENCIA = "divergencia", "Divergência"
+        NAO_ENCONTRADO = "nao_encontrado", "Pagamento não encontrado"
+        POSSIVEL_DUPLICADO = "possivel_duplicado", "Possível pagamento duplicado"
+
+    receivable = models.OneToOneField(
+        "reconciliation.Receivable", on_delete=models.CASCADE, related_name="reconciliation_result"
+    )
+    bank_transaction = models.ForeignKey(
+        "reconciliation.BankTransaction",
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True,
+        related_name="reconciliation_results",
+        help_text="Transação encontrada."
+    )
+    status = models.CharField(max_length=20, choices=Status.choices, db_index=True)
+    score = models.DecimalField(
+        max_digits=5, decimal_places=2, default=0,
+        help_text="Índice de confiança da correspondência, de 0 a 100."
+    )
+    amount_difference = models.DecimalField(
+        max_digits=14, decimal_places=2, null=True, blank=True,
+    )
+    date_difference_days = models.IntegerField(
+        null=True,
+        blank=True,
+        help_text="Diferença de dias entre a transação e o recebido"
+    )
+    notes = models.TextField(blank=True)
+    candidates_considered = models.JSONField(
+        default=list, blank=True,
+        help_text="Até 5 melhores transações candidatas consideradas, para auditoria.",
+    )
+
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["receivable__due_date"]
+        verbose_name = "Resultado da conciliação"
+        verbose_name_plural = "Resultados da conciliação"
+
+    def __str__(self) -> str:
+        return f"{self.receivable} -> {self.get_status_display()} ({self.score})"
