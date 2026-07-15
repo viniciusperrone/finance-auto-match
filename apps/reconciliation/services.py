@@ -1,5 +1,3 @@
-import traceback
-
 from apps.uploads.models import UploadedFile
 
 from .importers import ImportResult, get_importer_for
@@ -24,7 +22,7 @@ def process_uploaded_file(uploaded_file: UploadedFile) -> ImportResult:
         uploaded_file.status = UploadedFile.Status.ERRO
         uploaded_file.processing_notes = f"Nenhum registro importado. {result.failed} linhas(s) com error."
     else:
-        uploaded_file.status = UploadedFile.Status.ERRO
+        uploaded_file.status = UploadedFile.Status.PROCESSADO
         if result.failed == 0:
             uploaded_file.processing_notes = f"{result.imported} registro(s) importado(s) com sucesso."
         else:
@@ -36,7 +34,6 @@ def process_uploaded_file(uploaded_file: UploadedFile) -> ImportResult:
         try:
             run_reconciliation()
         except Exception as exc:
-            traceback.print_exc()
             uploaded_file.processing_notes += f" [Aviso: falha ao recalcular a conciliação: {exc}]"
 
     uploaded_file.save(update_fields=["status", "processing_notes"])
