@@ -124,7 +124,7 @@ class BankStatementImporter(BaseImporter):
 
 
 class ReceivableImporter(BaseImporter):
-    model: Receivable
+    model = Receivable
     required_columns = {"cliente", "vencimento", "valor_esperado"}
 
     def parse_row(self, row) -> dict:

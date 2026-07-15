@@ -23,7 +23,7 @@ def process_uploaded_file(uploaded_file: UploadedFile) -> ImportResult:
         uploaded_file.processing_notes = f"Nenhum registro importado. {result.failed} linhas(s) com error."
     else:
         uploaded_file.status = UploadedFile.Status.ERRO
-        if result.falied == 0:
+        if result.failed == 0:
             uploaded_file.processing_notes = f"{result.imported} registro(s) importado(s) com sucesso."
         else:
             uploaded_file.processing_notes = (
