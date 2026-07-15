@@ -33,7 +33,7 @@ def home(request):
 
 class ReconciliationResultListView(ListView):
     model = ReconciliationResult
-    template_name = "dashboard/result_list.html"
+    template_name = "dashboard/results_list.html"
     context_object_name = "resultados"
     paginate_by = 20
 
@@ -85,3 +85,8 @@ class ReconciliationResultListView(ListView):
         context["querystring"] = params.urlencode()
 
         return context
+
+class ReconciliationResultDetailReview(DetailView):
+    model = ReconciliationResult
+    template_name = "dashboard/results_detail.html"
+    context_object_name = "resultado"

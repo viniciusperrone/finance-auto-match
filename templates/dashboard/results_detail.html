@@ -1,0 +1,83 @@
+{% extends "base.html" %}
+
+{% block title %}Detalhe da conciliação - Finance Auto Match{% endblock %}
+
+{% block content %}
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h1 class="h3 mb-0">{{ resultado.receivable.client_name }}</h1>
+        <a href="{% url 'dashboard:results_list' %}" class="btn btn-outline-secondary btn-sm">&larr; Voltar para resultados</a>
+    </div>
+
+    <span class="badge bg-{% if resultado.status == 'conciliado' %}success{% elif resultado.status == 'divergencia' %}warning text-dark{% elif resultado.status == 'possivel_duplicado' %}danger{% else %}secondary{% endif %} mb-3">
+        {{ resultado.get_status_display }}
+    </span>
+
+    <div class="row g-3 mb-3">
+        <div class="col-md-6">
+            <div class="card h-100">
+                <div class="card-header">Conta a receber</div>
+                <div class="card-body small">
+                    <p class="mb-1"><strong>Cliente:</strong> {{ resultado.receivable.client_name }}</p>
+                    <p class="mb-1"><strong>Documento:</strong> {{ resultado.receivable.document_number|default:"—" }}</p>
+                    <p class="mb-1"><strong>Vencimento:</strong> {{ resultado.receivable.due_date|date:"d/m/Y" }}</p>
+                    <p class="mb-1"><strong>Valor esperado:</strong> R$ {{ resultado.receivable.expected_amount }}</p>
+                    <p class="mb-0"><strong>Arquivo de origem:</strong> {{ resultado.receivable.uploaded_file.original_filename }}</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="card h-100">
+                <div class="card-header">Transação encontrada</div>
+                <div class="card-body small">
+                    {% if resultado.bank_transaction %}
+                        <p class="mb-1"><strong>Data:</strong> {{ resultado.bank_transaction.transaction_date|date:"d/m/Y" }}</p>
+                        <p class="mb-1"><strong>Descrição:</strong> {{ resultado.bank_transaction.description }}</p>
+                        <p class="mb-1"><strong>Valor:</strong> R$ {{ resultado.bank_transaction.amount }}</p>
+                        <p class="mb-1"><strong>Score:</strong> {{ resultado.score }}/100</p>
+                        <p class="mb-1"><strong>Diferença de valor:</strong> {% if resultado.amount_difference %}R$ {{ resultado.amount_difference }}{% else %}—{% endif %}</p>
+                        <p class="mb-0"><strong>Diferença de data:</strong> {% if resultado.date_difference_days is not None %}{{ resultado.date_difference_days }} dia(s){% else %}—{% endif %}</p>
+                    {% else %}
+                        <p class="text-muted mb-0">Nenhuma transação candidata encontrada.</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card mb-3">
+        <div class="card-header">Observações do motor de conciliação</div>
+        <div class="card-body small">{{ resultado.notes }}</div>
+    </div>
+
+    {% if resultado.candidates_considered %}
+        <div class="card">
+            <div class="card-header">Candidatos considerados (até 5, do melhor pro pior)</div>
+            <div class="table-responsive">
+                <table class="table table-sm mb-0">
+                    <thead>
+                        <tr>
+                            <th>Data</th>
+                            <th>Descrição</th>
+                            <th>Valor</th>
+                            <th>Diferença de valor</th>
+                            <th>Diferença de data</th>
+                            <th>Score</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for c in resultado.candidates_considered %}
+                            <tr>
+                                <td>{{ c.date }}</td>
+                                <td>{{ c.description }}</td>
+                                <td>R$ {{ c.amount }}</td>
+                                <td>R$ {{ c.amount_difference }}</td>
+                                <td>{{ c.date_difference_days }} dia(s)</td>
+                                <td>{{ c.score }}</td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    {% endif %}
+{% endblock %}
