@@ -90,3 +90,16 @@ class ReconciliationResultDetailReview(DetailView):
     model = ReconciliationResult
     template_name = "dashboard/results_detail.html"
     context_object_name = "resultado"
+
+@require_POST
+def recalculate(request):
+    summary = run_reconciliation()
+    messages.success(
+        request,
+        f"Conciliação recalculada: {summary['conciliado']} conciliado(s), "
+        f"{summary['divergencia']} divergência(s), {summary['nao_encontrado']} não encontrado(s), "
+        f"{summary['possivel_duplicado']} possível(is) duplicado(s).",
+    )
+    next_url = request.META.get("HTTP_REFERER")
+
+    return redirect(next_url or "dashboard:home")
