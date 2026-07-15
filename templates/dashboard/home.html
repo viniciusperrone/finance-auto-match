@@ -3,17 +3,79 @@
 {% block title %}Dashboard{% endblock %}
 
 {% block content %}
-    <h1 class="h3 mb-3">Finance Auto Match</h1>
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h1 class="h3 mb-3">Finance Auto Match</h1>
+        <form method="post" action="{% url 'dashboard:recalculate' %}">
+            <button type="submit" class="btn btn-outline-secondary btn-sm">Recalcular conciliação</button>
+        </form>
+    </div>
 
     <p class="text-muted">
         Conciliação financeira entre extrato bancário e contas a receber.
     </p>
 
-    <div class="card" style="max-width: 320px;">
-        <div class="card-body">
-            <h5 class="card-title">Arquivos enviados</h5>
-            <p class="card-text display-6">{{ total_arquivos }}</p>
-            <a href="{% url 'uploads:list' %}" class="btn btn-sm btn-primary">Ver arquivos</a>
+    <div class="row g-3 mb-4">
+        <div class="col-sm-6 col-lg-3">
+            <div class="card">
+                <div class="card-body">
+                    <h6 class="card-subtitle text-muted mb-2">Arquivos enviados</h6>
+                    <p class="display-6 mb-2">{{ total_arquivos }}</p>
+                    <a href="{% url 'uploads:list' %}" class="small">Ver arquivos &rarr;</a>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-sm-6 col-lg-3">
+            <div class="card border-success">
+                <div class="card-body">
+                    <h6 class="card-subtitle text-muted mb-2">Conciliado</h6>
+                    <p class="display-6 mb-2 text-success">{{ resumo.conciliado }}</p>
+                    <a href="{% url 'dashboard:results_list' %}?status=conciliado" class="small">Ver &rarr;</a>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-sm-6 col-lg-3">
+            <div class="card border-warning">
+                <div class="card-body">
+                    <h6 class="card-subtitle text-muted mb-2">Divergência</h6>
+                    <p class="display-6 mb-2 text-warning">{{ resumo.divergencia }}</p>
+                    <a href="{% url 'dashboard:results_list' %}?status=divergencia" class="small">Ver &rarr;</a>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-sm-6 col-lg-3">
+            <div class="card border-secondary">
+                <div class="card-body">
+                    <h6 class="card-subtitle text-muted mb-2">Não encontrado</h6>
+                    <p class="display-6 mb-2 text-secondary">{{ resumo.nao_encontrado }}</p>
+                    <a href="{% url 'dashboard:results_list' %}?status=nao_encontrado" class="small">Ver &rarr;</a>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-sm-6 col-lg-3">
+            <div class="card border-danger">
+                <div class="card-body">
+                    <h6 class="card-subtitle text-muted mb-2">Possível duplicado</h6>
+                    <p class="display-6 mb-2 text-danger">{{ resumo.possivel_duplicado }}</p>
+                    <a href="{% url 'dashboard:results_list' %}?status=possivel_duplicado" class="small">Ver &rarr;</a>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-sm-6 col-lg-3">
+            <div class="card">
+                <div class="card-body">
+                    <h6 class="card-subtitle text-muted mb-2">Total de contas processadas</h6>
+                    <p class="display-6 mb-2">{{ resumo.total }}</p>
+                    <a href="{% url 'dashboard:results_list' %}" class="small">Ver todos &rarr;</a>
+                </div>
+            </div>
         </div>
     </div>
+
+
+
 {% endblock %}
