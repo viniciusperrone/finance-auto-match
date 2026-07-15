@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from .models import BankTransaction, ImportIssue, Receivable
+from .models import BankTransaction, ImportIssue, Receivable, ReconciliationResult
 
 
 @admin.register(BankTransaction)
@@ -23,3 +23,13 @@ class ImportIssueAdmin(admin.ModelAdmin):
     list_display = ("uploaded_file", "row_number", "error_message", "created_at")
     list_filter = ("uploaded_file",)
     readonly_fields = ("uploaded_file", "row_number", "raw_row", "error_message", "created_at")
+
+@admin.register(ReconciliationResult)
+class ReconciliationResultAdmin(admin.ModelAdmin):
+    list_display = ("receivable", "status", "score", "bank_transaction", "amount_difference", "date_difference_days")
+    list_filter = ("status",)
+    search_fields = ("receivable__client_name", "notes")
+    readonly_fields = (
+        "receivable", "bank_transaction", "status", "score", "amount_difference",
+        "date_difference_days", "notes", "candidates_considered", "created_at", "updated_at",
+    )
