@@ -141,7 +141,7 @@ def classify(receivable: Receivable, candidates: list) -> ReconciliationOutcome:
 
     if len(exact_matches) >= 2:
         details = "; ".join(
-            f"{c.bank_transaction.transaction_date.strftime('%d/%m/%Y') ({c.bank_transaction.description})} "
+            f"{c.bank_transaction.transaction_date.strftime('%d/%m/%Y')}{ ({c.bank_transaction.description})}"
             for c in exact_matches[:MAX_CANDIDATES_STORED]
         )
 

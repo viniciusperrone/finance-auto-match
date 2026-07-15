@@ -1,7 +1,9 @@
+import traceback
+
 from apps.uploads.models import UploadedFile
 
 from .importers import ImportResult, get_importer_for
-from .management.commands import run_reconciliation
+from apps.reconciliation.engine import run_reconciliation
 
 
 def process_uploaded_file(uploaded_file: UploadedFile) -> ImportResult:
@@ -34,6 +36,7 @@ def process_uploaded_file(uploaded_file: UploadedFile) -> ImportResult:
         try:
             run_reconciliation()
         except Exception as exc:
+            traceback.print_exc()
             uploaded_file.processing_notes += f" [Aviso: falha ao recalcular a conciliação: {exc}]"
 
     uploaded_file.save(update_fields=["status", "processing_notes"])
