@@ -9,4 +9,5 @@ urlpatterns = [
     path("resultados/", views.ReconciliationResultListView.as_view(), name="results_list"),
     path("resultados/<int:pk>/", views.ReconciliationResultDetailReview.as_view(), name="results_detail"),
     path("recalcular/", views.recalculate, name="recalculate"),
+    path("export/excel/", views.export_results_excel, name="export_results_excel"),
 ]

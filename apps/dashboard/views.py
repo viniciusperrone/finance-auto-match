@@ -1,8 +1,10 @@
 from datetime import datetime
+from openpyxl import Workbook
 
 from django.contrib import messages
 from django.db.models import Count
 from django.shortcuts import redirect, render
+from django.http import HttpResponse
 from django.views.decorators.http import require_POST
 from django.views.generic import DetailView, ListView
 
@@ -103,3 +105,49 @@ def recalculate(request):
     next_url = request.META.get("HTTP_REFERER")
 
     return redirect(next_url or "dashboard:home")
+
+def export_results_excel(request):
+    workbook = Workbook()
+    worksheet = workbook.active
+    worksheet.title = "Resultado da Conciliação"
+
+    worksheet.append([
+        "Cliente",
+        "Valor Esperado",
+        "Valor Recebido",
+        "Status",
+        "Score",
+        "Diferença",
+        "Diferença (dias)",
+        "Observações",
+    ])
+
+    results = (
+        ReconciliationResult.objects
+        .select_related("receivable", "bank_transaction")
+        .order_by("receivable__client_name")
+    )
+
+    for result in results:
+        worksheet.append([
+            result.receivable.client_name,
+            float(result.receivable.expected_amount),
+            float(result.bank_transaction.amount) if result.bank_transaction else "",
+            result.get_status_display(),
+            float(result.score),
+            float(result.amount_difference) if result.amount_difference is not None else "",
+            result.date_difference_days if result.date_difference_days is not None else "",
+            result.notes,
+        ])
+
+    response = HttpResponse(
+        content_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+    )
+
+    response["Content-Disposition"] = (
+        'attachment; filename="resultado_conciliacao.xlsx"'
+    )
+
+    workbook.save(response)
+
+    return response

@@ -5,9 +5,15 @@
 {% block content %}
     <div class="d-flex justify-content-between align-items-center mb-3">
         <h1 class="h3 mb-3">Finance Auto Match</h1>
-        <form method="post" action="{% url 'dashboard:recalculate' %}">
-            <button type="submit" class="btn btn-outline-secondary btn-sm">Recalcular conciliação</button>
-        </form>
+
+        <div class="d-flex gap-2">
+            <form method="post" action="{% url 'dashboard:recalculate' %}">
+                <button type="submit" class="btn btn-outline-secondary btn-sm">Recalcular conciliação</button>
+            </form>
+            <a href="{% url 'dashboard:export_results_excel' %}" class="btn btn-success btn-sm">
+                Exportar Excel
+            </a>
+        </div>
     </div>
 
     <p class="text-muted">
