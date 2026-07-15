@@ -1,0 +1,108 @@
+{% extends "base.html" %}
+
+{% block title %}Resultados da conciliação - Finance Auto Match{% endblock %}
+
+{% block content %}
+    <h1 class="h3 mb-3">Resultados da conciliação</h1>
+
+    <form method="get" class="row g-2 align-items-end mb-4">
+        <div class="col-sm-3">
+            <label class="form-label small">Status</label>
+            <select name="status" class="form-select form-select-sm">
+                <option value="">Todos</option>
+                {% for value, label in status_choices %}
+                    <option value="{{ value }}" {% if filtros.status == value %}selected{% endif %}>{{ label }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="col-sm-3">
+            <label class="form-label small">Cliente</label>
+            <input type="text" name="cliente" value="{{ filtros.cliente }}" class="form-control form-control-sm" placeholder="Nome do cliente">
+        </div>
+        <div class="col-sm-2">
+            <label class="form-label small">Vencimento de</label>
+            <input type="date" name="data_inicio" value="{{ filtros.data_inicio }}" class="form-control form-control-sm">
+        </div>
+        <div class="col-sm-2">
+            <label class="form-label small">Vencimento até</label>
+            <input type="date" name="data_fim" value="{{ filtros.data_fim }}" class="form-control form-control-sm">
+        </div>
+        <div class="col-sm-2 d-flex gap-2">
+            <button type="submit" class="btn btn-primary btn-sm">Filtrar</button>
+            <a href="{% url 'dashboard:results_list' %}" class="btn btn-outline-secondary btn-sm">Limpar</a>
+        </div>
+    </form>
+
+    <p class="text-muted small">
+        {{ resumo.total }} conta(s) processada(s) no total —
+        {{ resumo.conciliado }} conciliada(s), {{ resumo.divergencia }} com divergência,
+        {{ resumo.nao_encontrado }} não encontrada(s), {{ resumo.possivel_duplicado }} possível(is) duplicado(s).
+    </p>
+
+    {% if resultados %}
+        <div class="table-responsive">
+            <table class="table table-striped align-middle">
+                <thead>
+                    <tr>
+                        <th>Cliente</th>
+                        <th>Vencimento</th>
+                        <th>Valor esperado</th>
+                        <th>Status</th>
+                        <th>Score</th>
+                        <th>Transação encontrada</th>
+                        <th>Diferença</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for r in resultados %}
+                        <tr>
+                            <td>{{ r.receivable.client_name }}</td>
+                            <td>{{ r.receivable.due_date|date:"d/m/Y" }}</td>
+                            <td>R$ {{ r.receivable.expected_amount }}</td>
+                            <td>
+                                <span class="badge bg-{% if r.status == 'conciliado' %}success{% elif r.status == 'divergencia' %}warning text-dark{% elif r.status == 'possivel_duplicado' %}danger{% else %}secondary{% endif %}">
+                                    {{ r.get_status_display }}
+                                </span>
+                            </td>
+                            <td>{{ r.score }}</td>
+                            <td class="small">
+                                {% if r.bank_transaction %}
+                                    {{ r.bank_transaction.transaction_date|date:"d/m/Y" }} — {{ r.bank_transaction.description }}
+                                {% else %}
+                                    <span class="text-muted">—</span>
+                                {% endif %}
+                            </td>
+                            <td class="small">
+                                {% if r.amount_difference %}
+                                    R$ {{ r.amount_difference }}
+                                {% else %}
+                                    <span class="text-muted">—</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <a href="{% url 'dashboard:results_detail' r.pk %}" class="btn btn-sm btn-outline-primary">Detalhes</a>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        {% if is_paginated %}
+            <nav>
+                <ul class="pagination">
+                    {% if page_obj.has_previous %}
+                        <li class="page-item"><a class="page-link" href="?{% if querystring %}{{ querystring }}&{% endif %}page={{ page_obj.previous_page_number }}">Anterior</a></li>
+                    {% endif %}
+                    <li class="page-item disabled"><span class="page-link">Página {{ page_obj.number }} de {{ page_obj.paginator.num_pages }}</span></li>
+                    {% if page_obj.has_next %}
+                        <li class="page-item"><a class="page-link" href="?{% if querystring %}{{ querystring }}&{% endif %}page={{ page_obj.next_page_number }}">Próxima</a></li>
+                    {% endif %}
+                </ul>
+            </nav>
+        {% endif %}
+    {% else %}
+        <p class="text-muted">Nenhum resultado encontrado para os filtros aplicados.</p>
+    {% endif %}
+{% endblock %}
