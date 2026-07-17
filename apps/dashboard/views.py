@@ -12,6 +12,7 @@ from django.views.generic import DetailView, ListView
 
 from apps.reconciliation.engine import run_reconciliation
 from apps.reconciliation.models import ReconciliationResult
+from apps.reconciliation.filters import filters_reconciliation_result
 from apps.uploads.models import UploadedFile
 
 Status = ReconciliationResult.Status
@@ -83,27 +84,7 @@ class ReconciliationResultListView(ListView):
             return None
 
     def get_queryset(self):
-        qs = ReconciliationResult.objects.select_related("receivable", "bank_transaction").order_by(
-            "receivable__due_date", "receivable__client_name"
-        )
-
-        status = self.request.GET.get("status")
-        if status:
-            qs = qs.filter(status=status)
-
-        cliente = self.request.GET.get("cliente")
-        if cliente:
-            qs = qs.filter(receivable__client_name__icontains=cliente)
-
-        data_inicio = self._parse_date(self.request.GET.get("data_inicio"))
-        if data_inicio:
-            qs = qs.filter(receivable__due_date__gte=data_inicio)
-
-        data_fim = self._parse_date(self.request.GET.get("data_fim"))
-        if data_fim:
-            qs = qs.filter(receivable__due_date__lte=data_fim)
-
-        return qs
+        return filters_reconciliation_result(self.request.GET)
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
