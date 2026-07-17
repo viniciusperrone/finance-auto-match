@@ -1,8 +1,10 @@
+import json
 from datetime import datetime
 from openpyxl import Workbook
+from decimal import Decimal
 
 from django.contrib import messages
-from django.db.models import Count
+from django.db.models import Count, Sum
 from django.shortcuts import redirect, render
 from django.http import HttpResponse
 from django.views.decorators.http import require_POST
@@ -12,23 +14,55 @@ from apps.reconciliation.engine import run_reconciliation
 from apps.reconciliation.models import ReconciliationResult
 from apps.uploads.models import UploadedFile
 
+Status = ReconciliationResult.Status
 
 def _resume_conciliation() -> dict:
-    counts_qs = ReconciliationResult.objects.values("status").annotate(total=Count("id"))
-    counts = {row["status"]: row["total"] for row in counts_qs}
+    counts_qs = ReconciliationResult.objects.values("status").annotate(
+        total=Count("id"), value=Sum("receivable__expected_amount")
+    )
+    by_status = {row["status"]: row for row in counts_qs}
+
+    def count_for(status):
+        return by_status.get(status, {}).get("total", 0)
+
+    def value_for(status):
+        return float(by_status.get(status, {}).get("valor") or Decimal("0.00"))
 
     return {
         "total": ReconciliationResult.objects.count(),
-        "conciliado": counts.get(ReconciliationResult.Status.CONCILIADO, 0),
-        "divergencia": counts.get(ReconciliationResult.Status.DIVERGENCIA, 0),
-        "nao_encontrado": counts.get(ReconciliationResult.Status.NAO_ENCONTRADO, 0),
-        "possivel_duplicado": counts.get(ReconciliationResult.Status.POSSIVEL_DUPLICADO, 0),
+        "reconciled": count_for(Status.CONCILIADO),
+        "discrepancy": count_for(Status.DIVERGENCIA),
+        "not_found": count_for(Status.NAO_ENCONTRADO),
+        "possible_duplicate": count_for(Status.POSSIVEL_DUPLICADO),
+        "values": {
+            "reconciled": value_for(Status.CONCILIADO),
+            "discrepancy": value_for(Status.DIVERGENCIA),
+            "not_found": value_for(Status.NAO_ENCONTRADO),
+            "possible_duplicate": value_for(Status.POSSIVEL_DUPLICADO)
+        }
     }
 
 def home(request):
+    resume = _resume_conciliation()
     context = {
-        "total_arquivos": UploadedFile.objects.count(),
-        "resumo": _resume_conciliation()
+        "all_files": UploadedFile.objects.count(),
+        "resume": resume,
+        "chart_status_counts": json.dumps(
+            {
+                "Conciliado": resume["reconciled"],
+                "Divergência": resume["discrepancy"],
+                "Não encontrado": resume["not_found"],
+                "Possível duplicado": resume["possible_duplicate"],
+            }
+        ),
+        "chart_status_values": json.dumps(
+            {
+                "Conciliado": round(resume["values"]["reconciled"], 2),
+                "Divergência": round(resume["values"]["discrepancy"], 2),
+                "Não encontrado": round(resume["values"]["not_found"], 2),
+                "Possível duplicado": round(resume["values"]["possible_duplicate"], 2),
+            }
+        ),
     }
 
     return render(request, "dashboard/home.html", context)

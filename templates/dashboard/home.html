@@ -25,7 +25,7 @@
             <div class="card">
                 <div class="card-body">
                     <h6 class="card-subtitle text-muted mb-2">Arquivos enviados</h6>
-                    <p class="display-6 mb-2">{{ total_arquivos }}</p>
+                    <p class="display-6 mb-2">{{ all_files }}</p>
                     <a href="{% url 'uploads:list' %}" class="small">Ver arquivos &rarr;</a>
                 </div>
             </div>
@@ -35,7 +35,7 @@
             <div class="card border-success">
                 <div class="card-body">
                     <h6 class="card-subtitle text-muted mb-2">Conciliado</h6>
-                    <p class="display-6 mb-2 text-success">{{ resumo.conciliado }}</p>
+                    <p class="display-6 mb-2 text-success">{{ resume.reconciled }}</p>
                     <a href="{% url 'dashboard:results_list' %}?status=conciliado" class="small">Ver &rarr;</a>
                 </div>
             </div>
@@ -45,7 +45,7 @@
             <div class="card border-warning">
                 <div class="card-body">
                     <h6 class="card-subtitle text-muted mb-2">Divergência</h6>
-                    <p class="display-6 mb-2 text-warning">{{ resumo.divergencia }}</p>
+                    <p class="display-6 mb-2 text-warning">{{ resume.discrepancy }}</p>
                     <a href="{% url 'dashboard:results_list' %}?status=divergencia" class="small">Ver &rarr;</a>
                 </div>
             </div>
@@ -55,7 +55,7 @@
             <div class="card border-secondary">
                 <div class="card-body">
                     <h6 class="card-subtitle text-muted mb-2">Não encontrado</h6>
-                    <p class="display-6 mb-2 text-secondary">{{ resumo.nao_encontrado }}</p>
+                    <p class="display-6 mb-2 text-secondary">{{ resume.not_found }}</p>
                     <a href="{% url 'dashboard:results_list' %}?status=nao_encontrado" class="small">Ver &rarr;</a>
                 </div>
             </div>
@@ -65,7 +65,7 @@
             <div class="card border-danger">
                 <div class="card-body">
                     <h6 class="card-subtitle text-muted mb-2">Possível duplicado</h6>
-                    <p class="display-6 mb-2 text-danger">{{ resumo.possivel_duplicado }}</p>
+                    <p class="display-6 mb-2 text-danger">{{ resume.possible_duplicate }}</p>
                     <a href="{% url 'dashboard:results_list' %}?status=possivel_duplicado" class="small">Ver &rarr;</a>
                 </div>
             </div>
@@ -75,13 +75,60 @@
             <div class="card">
                 <div class="card-body">
                     <h6 class="card-subtitle text-muted mb-2">Total de contas processadas</h6>
-                    <p class="display-6 mb-2">{{ resumo.total }}</p>
+                    <p class="display-6 mb-2">{{ resume.total }}</p>
                     <a href="{% url 'dashboard:results_list' %}" class="small">Ver todos &rarr;</a>
                 </div>
             </div>
         </div>
     </div>
 
+    <div class="row g-3 mb-4">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">Contas por status</div>
+                <div class="card-body">
+                    <canvas id="chartStatusCounts" height="220"></canvas>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">Valor esperado (R$) por status</div>
+                <div class="card-body">
+                    <canvas id="chartStatusValues" height="220"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
 
+    {{ chart_status_counts|json_script:"chart-status-counts" }}
+    {{ chart_status_values|json_script:"chart-status-values"}}
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
+    <script>
+        const STATUS_COLORS = ["#198754", "#ffc107", "#6c757d", "#dc3545"];
+
+        const countsData = JSON.parse(document.getElementById("chart-status-counts").textContent);
+        new Chart(document.getElementById("chartStatusCounts"), {
+            type: "doughnut",
+            data: {
+                labels: Object.keys(countsData),
+                datasets: [{ data: Object.values(countsData), backgroundColor: STATUS_COLORS }],
+            },
+            options: { plugins: { legend: { position: "bottom" } } },
+        });
+
+        const valoresData = JSON.parse(document.getElementById("chart-status-values").textContent);
+        new Chart(document.getElementById("chartStatusValues"), {
+            type: "bar",
+            data: {
+                labels: Object.keys(valoresData),
+                datasets: [{ label: "Valor esperado (R$)", data: Object.values(valoresData), backgroundColor: STATUS_COLORS }],
+            },
+            options: {
+                plugins: { legend: { display: false } },
+                scales: { y: { beginAtZero: true } },
+            },
+        });
+    </script>
 
 {% endblock %}

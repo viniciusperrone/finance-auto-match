@@ -5,7 +5,7 @@ from django.views.generic import CreateView, DeleteView, ListView
 
 from .models import UploadedFile
 from .forms import UploadedFileForm
-from ..reconciliation.services import process_uploaded_file
+from apps.reconciliation.services import process_uploaded_file
 
 
 class UploadedFileListView(ListView):
