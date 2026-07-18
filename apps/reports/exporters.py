@@ -131,7 +131,7 @@ def export_to_excel(queryset: QuerySet[ReconciliationResult]) -> bytes:
 
     for row in range(2, len(resume_rows) + 2):
         ws2.cell(row=row, column=1).font = Font(name="Arial", size=10)
-        ws2.cell(row=row, colummn=2).font = Font(name="Arial", size=10)
+        ws2.cell(row=row, column=2).font = Font(name="Arial", size=10)
 
     ws2.column_dimensions["A"].width = 34
     ws2.column_dimensions["B"].width = 20

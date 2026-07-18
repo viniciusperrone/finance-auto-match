@@ -38,7 +38,8 @@ INSTALLED_APPS = [
     "django.contrib.messages",
     "django.contrib.staticfiles",
     "apps.uploads",
-    "apps.reconciliation"
+    "apps.reconciliation",
+    "apps.reports"
 ]
 
 MIDDLEWARE = [
