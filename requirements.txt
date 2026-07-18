@@ -1,4 +1,5 @@
 asgiref==3.11.1
+chardet==7.4.3
 dj-database-url==3.1.2
 Django==6.0.6
 et_xmlfile==2.0.0
@@ -7,10 +8,12 @@ numpy==2.5.1
 openpyxl==3.1.5
 packaging==26.2
 pandas==3.0.3
+pillow==12.3.0
 psycopg==3.3.4
 psycopg-binary==3.3.4
 python-dateutil==2.9.0.post0
 python-decouple==3.8
+reportlab==4.2.2
 six==1.17.0
 sqlparse==0.5.5
 typing_extensions==4.16.0

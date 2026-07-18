@@ -1,11 +1,17 @@
 import io
 from collections import Counter
+from decimal import Decimal
 
 from django.db.models import QuerySet
 from django.utils import timezone
 from openpyxl import Workbook
 from openpyxl.styles import Alignment, Font, PatternFill
 from openpyxl.utils import get_column_letter
+from reportlab.lib import colors, pagesizes
+from reportlab.lib.pagesizes import A4, landscape
+from reportlab.lib.styles import ParagraphStyle, getSampleStyleSheet
+from reportlab.lib.units import cm
+from reportlab.platypus import Paragraph, SimpleDocTemplate, Spacer, Table, TableStyle
 
 from apps.reconciliation.models import ReconciliationResult
 
@@ -20,6 +26,13 @@ STATUS_BG_HEX = {
     Status.NAO_ENCONTRADO: "E5E7EB",
     Status.POSSIVEL_DUPLICADO: "FEE2E2",
 }
+
+
+def format_currency_brl(value) -> str:
+    if value is None:
+        return "—"
+    text = f"{Decimal(value):,.2f}"
+    return "R$ " + text.replace(",", "X").replace(".", ",").replace("X", ".")
 
 def build_summary(queryset) -> dict:
     counts = Counter(queryset.values_list("status", flat=True))
@@ -140,3 +153,98 @@ def export_to_excel(queryset: QuerySet[ReconciliationResult]) -> bytes:
     wb.save(buffer)
 
     return buffer.getvalue()
+
+def export_to_pdf(queryset) -> bytes:
+    buffer = io.BytesIO()
+    doc = SimpleDocTemplate(
+        buffer,
+        pagesizes=landscape(A4),
+        leftMargin=1.3 * cm,
+        rightMargin=1.3 * cm,
+        topMargin=1.3 * cm,
+        bottomMargin=1.3 * cm,
+        title="Relatório de Conciliação Financeira"
+    )
+    styles = getSampleStyleSheet()
+    title_style = ParagraphStyle("TitleCustom", parent=styles["Title"], fontSize=16, spaceAfter=2)
+    subtitle_style = ParagraphStyle("SubtitleCustom", parent=styles["Normal"], fontSize=9, textColor=colors.grey)
+    section_style = ParagraphStyle("SectionCustom", parent=styles["Normal"], fontSize=7.5, spaceBefore=14, spaceAfter=6)
+    cell_style = ParagraphStyle("CellCustom", parent=styles["Normal"], fontSize=7.5, leading=9)
+
+    story = [
+        Paragraph("Relatório de Conciliação Financeira", title_style),
+        Paragraph(f"Gerado em {timezone.localtime().strftime('%d/%m/%Y %H:%M')}", subtitle_style),
+        Spacer(1, 12)
+    ]
+
+    summary = build_summary(queryset)
+    resume_data = [
+        ["Indicador", "Valor"],
+        ["Total de registros processados", str(summary["total"])],
+        ["Total conciliação", str(summary["reconciled"])],
+        ["Total com divergência", str(summary["discrepancy"])],
+        ["Total pendente (não encontrado)", str(summary["not_found"])],
+        ["Possíveis duplicidades", str(summary["possible_duplicate"])],
+    ]
+    resume_table = Table(resume_data, colWidths=[8 * cm, 4 * cm])
+    resume_table.setStyle(TableStyle([
+        ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor(f"#{HEADER_BG_HEX}")),
+        ("TEXTCOLOR", (0, 0), (-1, 0), colors.white),
+        ("FONTNAME", (0, 0), (-1, 0), "Helvetica-Bold"),
+        ("FONTSIZE", (0, 0), (-1, -1), 9),
+        ("GRID", (0, 0), (-1, 0), 0.5, colors.HexColor("#D1D5DB")),
+        ("ROWBACKGROUNDS", (0, 1), (-1, -1), [colors.white, colors.HexColor("#F9FAF8")])
+        ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
+        ("TOPPADDING", (0, 0), (-1, -1), 4),
+        ("BOTTOMPADDING", (0, 0), (-1, -1), 4),
+    ]))
+    story.append(resume_table)
+    story.append(Paragraph("Detalhamento", section_style))
+
+    table_data = [["Cliente", "Vencimento", "Valor esperado", "Status", "Score", "Transação encontrada", "Observações"]]
+    row_statuses = []
+    for result in queryset.select_related("receivable", "bank_transaction"):
+        r = result.receivable
+        t = result.bank_transaction
+        transacao = f"{t.transaction_date.strftime('%d/%m/%Y')} — {t.description}" if t else "—"
+        table_data.append([
+            Paragraph(r.client_name, cell_style),
+            r.due_date.strftime("%d/%m/%Y"),
+            format_currency_brl(r.expected_amount),
+            STATUS_LABELS.get(result.status, result.status),
+            f"{result.score:.0f}",
+            Paragraph(transacao, cell_style),
+            Paragraph(result.notes, cell_style),
+        ])
+        row_statuses.append(result.status)
+
+    if len(table_data) == 1:
+        story.append(Paragraph("Nenhum registro encontrado para os filtros aplicados.", styles["Normal"]))
+    else:
+        detail_table = Table(
+            table_data,
+            colWidths=[3.3 * cm, 2.1 * cm, 2.6 * cm, 3.0 * cm, 1.3 * cm, 5.5 * cm, 8.2 * cm],
+            repeatRows=1,
+        )
+        style_commands = [
+            ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor(f"#{HEADER_BG_HEX}")),
+            ("TEXTCOLOR", (0, 0), (-1, 0), colors.white),
+            ("FONTNAME", (0, 0), (-1, 0), "Helvetica-Bold"),
+            ("FONTSIZE", (0, 0), (-1, 0), 8),
+            ("FONTSIZE", (0, 1), (-1, -1), 7.5),
+            ("GRID", (0, 0), (-1, -1), 0.4, colors.HexColor("#D1D5DB")),
+            ("VALIGN", (0, 0), (-1, -1), "TOP"),
+            ("TOPPADDING", (0, 0), (-1, -1), 3),
+            ("BOTTOMPADDING", (0, 0), (-1, -1), 3),
+        ]
+        for idx, status in enumerate(row_statuses, start=1):
+            hex_color = STATUS_BG_HEX.get(status)
+            if hex_color:
+                style_commands.append(("BACKGROUND", (0, idx), (-1, idx), colors.HexColor(f"#{hex_color}")))
+        detail_table.setStyle(TableStyle(style_commands))
+        story.append(detail_table)
+
+    doc.build(story)
+    return buffer.getvalue()
+
+
