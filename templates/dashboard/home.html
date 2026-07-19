@@ -7,10 +7,11 @@
         <h1 class="h3 mb-3">Finance Auto Match</h1>
 
         <div class="d-flex gap-2">
+            <a href="{% url 'reports:export_excel' %}" class="btn btn-outline-success btn-sm">Exportar Excel</a>
+            <a href="{% url 'reports:export_pdf' %}" class="btn btn-outline-danger btn-sm">Exportar PDF</a>
             <form method="post" action="{% url 'dashboard:recalculate' %}">
                 <button type="submit" class="btn btn-outline-secondary btn-sm">Recalcular conciliação</button>
             </form>
-            <a href="{% url 'reports:export_excel' %}" class="btn btn-success btn-sm">Exportar Excel</a>
         </div>
     </div>
 

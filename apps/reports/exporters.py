@@ -193,7 +193,7 @@ def export_to_pdf(queryset) -> bytes:
         ("FONTNAME", (0, 0), (-1, 0), "Helvetica-Bold"),
         ("FONTSIZE", (0, 0), (-1, -1), 9),
         ("GRID", (0, 0), (-1, 0), 0.5, colors.HexColor("#D1D5DB")),
-        ("ROWBACKGROUNDS", (0, 1), (-1, -1), [colors.white, colors.HexColor("#F9FAF8")])
+        ("ROWBACKGROUNDS", (0, 1), (-1, -1), [colors.white, colors.HexColor("#F9FAF8")]),
         ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
         ("TOPPADDING", (0, 0), (-1, -1), 4),
         ("BOTTOMPADDING", (0, 0), (-1, -1), 4),
@@ -204,16 +204,16 @@ def export_to_pdf(queryset) -> bytes:
     table_data = [["Cliente", "Vencimento", "Valor esperado", "Status", "Score", "Transação encontrada", "Observações"]]
     row_statuses = []
     for result in queryset.select_related("receivable", "bank_transaction"):
-        r = result.receivable
-        t = result.bank_transaction
-        transacao = f"{t.transaction_date.strftime('%d/%m/%Y')} — {t.description}" if t else "—"
+        receivable = result.receivable
+        transaction = result.bank_transaction
+        transaction_str = f"{transaction.transaction_date.strftime('%d/%m/%Y')} — {transaction.description}" if transaction else "—"
         table_data.append([
-            Paragraph(r.client_name, cell_style),
-            r.due_date.strftime("%d/%m/%Y"),
-            format_currency_brl(r.expected_amount),
+            Paragraph(receivable.client_name, cell_style),
+            receivable.due_date.strftime("%d/%m/%Y"),
+            format_currency_brl(receivable.expected_amount),
             STATUS_LABELS.get(result.status, result.status),
             f"{result.score:.0f}",
-            Paragraph(transacao, cell_style),
+            Paragraph(transaction_str, cell_style),
             Paragraph(result.notes, cell_style),
         ])
         row_statuses.append(result.status)
@@ -245,6 +245,5 @@ def export_to_pdf(queryset) -> bytes:
         story.append(detail_table)
 
     doc.build(story)
+
     return buffer.getvalue()
-
-

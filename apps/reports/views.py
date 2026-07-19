@@ -3,7 +3,7 @@ from django.http import HttpResponse
 from django.utils import timezone
 
 from apps.reconciliation.filters import filters_reconciliation_result
-from apps.reports.exporters import export_to_excel
+from apps.reports.exporters import export_to_excel, export_to_pdf
 
 
 def _save_copy_to_exports(filename: str, content: bytes) -> None:
@@ -22,5 +22,17 @@ def export_excel(request):
         content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
     )
     response["Content-Disposition"] = f"attachment; filename={filename}"
+
+    return response
+
+def export_pdf(request):
+    queryset = filters_reconciliation_result(request.GET)
+    content = export_to_pdf(queryset)
+
+    filename = f"reconciliation_{timezone.localtime().strftime("%Y%m%d_%H%M%S")}.pdf"
+    _save_copy_to_exports(filename, content)
+
+    response = HttpResponse(content, content_type="application/pdf")
+    response["Content-Disposition"] = f'attachment; filename={filename}'
 
     return response
